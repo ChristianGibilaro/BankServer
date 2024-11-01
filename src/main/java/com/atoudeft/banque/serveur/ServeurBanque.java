@@ -84,6 +84,13 @@ public class ServeurBanque extends Serveur {
      * du TP).
      */
     public void supprimeInactifs() {
-        //À définir :
+        for (int i = connectes.size()-1; i>=0; i--) {
+            ConnexionBanque connexion = (ConnexionBanque) connectes.get(i);
+            if (connexion.estInactifDepuis(DELAI_INACTIVITE)){
+                connexion.envoyer("END");
+                connexion.close();
+                connectes.remove(i);
+            }
+        }
     }
 }
