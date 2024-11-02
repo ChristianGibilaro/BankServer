@@ -43,6 +43,11 @@ public abstract class CompteBancaire implements Serializable {
     public double getSolde() {
         return solde;
     }
+
+    public void setSolde(double solde) {
+        this.solde = solde; //méthode pour modifier le solde. nécessaire pour la classe CompteCheque
+    }
+
     public abstract boolean crediter(double montant);
     public abstract boolean debiter(double montant);
     public abstract boolean payerFacture(String numeroFacture, double montant, String description);

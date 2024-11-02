@@ -1,5 +1,6 @@
 package com.atoudeft.banque;
 
+import jdk.nashorn.internal.ir.WhileNode;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.Serializable;
@@ -94,10 +95,53 @@ public class Banque implements Serializable {
      * @return true si le compte a été créé correctement
      */
     public boolean ajouter(String numCompteClient, String nip) {
-
-
-
-        return this.comptes.add(new CompteClient(numCompteClient,nip)); //À modifier
+        if (numCompteClient.length() < 6 || numCompteClient.length() > 8) { //entre 6 et 8
+            return false;
+        }
+        for (char c : numCompteClient.toCharArray()) { // ne contient que des lettre majuscule et chiffre
+            if (!Character.isUpperCase(c) && !Character.isDigit(c)) {
+                return false;
+            }
+        }
+        // pin entre 4 et 5
+        if (nip.length() < 4 || nip.length() > 5) {
+            return false;
+        }
+        //contient que des chiffre
+        for (char c : nip.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return false; // Retourne false si un caractère non numérique est trouvé
+            }
+        }
+        for(CompteClient client : comptes) {
+            if(client.getNumero().equals(numCompteClient)){
+                return false;
+            }
+        }
+        //si toute les vérification sont réussis
+        CompteClient nouveauClient = new CompteClient(numCompteClient, nip);
+        //générer un nouveau numéro
+        String nouveauNumeroCompte;
+        do{
+            nouveauNumeroCompte = CompteBancaire.genereNouveauNumero();
+        }
+        while(compteDejaExistant(nouveauNumeroCompte));
+        // Créer un comptechèque le numéro
+        CompteCheque compteCheque = new CompteCheque(nouveauNumeroCompte, TypeCompte.CHEQUE);
+        nouveauClient.ajouter(compteCheque); //méthode "ajouter" dans CompteClient
+        return comptes.add(nouveauClient); // Ajouter à la collection des comptes
+    }
+    // Méthode pour vérifier si un compte exist déjà
+    private boolean compteDejaExistant(String numeroCompte) {
+        for (CompteClient client : comptes) {
+            for (CompteBancaire compte : client.getComptes()) {
+                if (compte.getNumero().equals(numeroCompte)) {
+                    return true; // Le numexiste déjà
+                }
+            }
+        }
+        return false; // Aucun compte existe avec ce num
+        //return this.comptes.add(new CompteClient(numCompteClient,nip)); //À modifier
     }
 
     /**
@@ -107,7 +151,15 @@ public class Banque implements Serializable {
      * @return numéro du compte-chèque du client ayant le numéro de compte-client
      */
     public String getNumeroCompteParDefaut(String numCompteClient) {
-        //À compléter : retourner le numéro du compte-chèque du compte-client.
-        return null; //À modifier
+        for(CompteClient client : comptes) { // pour parcourir la list des compte
+            if(client.getNumero().equals(numCompteClient)){
+                if(!client.getComptes().isEmpty()) {// verifaction s'il a des comptes
+                    return client.getComptes().get(0).getNumero();// 1er compte
+                } else{
+                    return null; //si le client n'a pas de compte
+                }
+            }
+        }
+        return null; //À modifier client nn trouvé
     }
 }
