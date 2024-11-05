@@ -27,7 +27,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
     public GestionnaireEvenementServeur(Serveur serveur) {
         this.serveur = serveur;
     }
-
+//s
     /**
      * Méthode de gestion d'événements. Cette méthode contiendra le code qui gère les réponses obtenues d'un client.
      *
