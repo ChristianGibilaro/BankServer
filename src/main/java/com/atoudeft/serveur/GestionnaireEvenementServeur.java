@@ -1,6 +1,7 @@
 package com.atoudeft.serveur;
 
 import com.atoudeft.banque.Banque;
+import com.atoudeft.banque.CompteClient;
 import com.atoudeft.banque.serveur.ConnexionBanque;
 import com.atoudeft.banque.serveur.ServeurBanque;
 import com.atoudeft.commun.evenement.Evenement;
@@ -80,6 +81,33 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                             cnx.envoyer("NOUVEAU NO "+t[0]+" existe");
                     }
                     break;
+
+                case "CONNECT":
+                    if (cnx.getNumeroCompteClient()!=null) {
+                        cnx.envoyer("CONNECT NO deja connecte");
+                        break;
+                    }
+                    argument = evenement.getArgument();
+                    t = argument.split(":");
+                    if (t.length<2) {
+                        cnx.envoyer("CONNECT NO");
+                    }
+                    else {
+                        numCompteClient = t[0];
+                        nip = t[1];
+                        banque = serveurBanque.getBanque();
+                        CompteClient compte = banque.getCompteClient(numCompteClient);
+                        if (compte != null && compte.getNip().equals(nip) ) {
+                            cnx.setNumeroCompteClient(numCompteClient);
+                            cnx.setNumeroCompteActuel(banque.getNumeroCompteParDefaut(numCompteClient));
+                            cnx.envoyer("CONNECT OK");
+                        } else {
+                            cnx.envoyer("CONNECT NO");
+                        }
+
+                    }
+
+
                 /******************* TRAITEMENT PAR DÉFAUT *******************/
                 default: //Renvoyer le texte recu convertit en majuscules :
                     msg = (evenement.getType() + " " + evenement.getArgument()).toUpperCase();

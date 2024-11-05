@@ -1,5 +1,7 @@
 package com.atoudeft.banque;
 
+import com.sun.corba.se.spi.ior.ObjectKey;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,10 @@ public class CompteClient implements Serializable {
         return comptes;
     }
 
+    @Override
+    public boolean equals (Object obj)  {
+        return ((CompteClient)obj).numero.equals(numero);
+    }
 
     /**
      * Ajoute un compte bancaire au compte-client.
