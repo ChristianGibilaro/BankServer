@@ -1,5 +1,6 @@
 package com.atoudeft.banque;
 
+import com.atoudeft.banque.serveur.CompteEpargne;
 import jdk.nashorn.internal.ir.WhileNode;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -162,5 +163,16 @@ public class Banque implements Serializable {
             }
         }
         return null; //À modifier. client nn trouvé
+    }
+    public String getNumeroCompteEpargne(String numCompteClient) {
+        CompteClient client = getCompteClient(numCompteClient);
+        if (client != null) {
+            for (CompteBancaire compte : client.getComptes()) {
+                if (compte instanceof CompteEpargne) {
+                    return compte.getNumero();
+                }
+            }
+        }
+        return null; // Si aucun compte épargne n'est trouvé
     }
 }

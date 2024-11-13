@@ -1,7 +1,10 @@
 package com.atoudeft.serveur;
 
 import com.atoudeft.banque.Banque;
+import com.atoudeft.banque.CompteBancaire;
 import com.atoudeft.banque.CompteClient;
+import com.atoudeft.banque.TypeCompte;
+import com.atoudeft.banque.serveur.CompteEpargne;
 import com.atoudeft.banque.serveur.ConnexionBanque;
 import com.atoudeft.banque.serveur.ServeurBanque;
 import com.atoudeft.commun.evenement.Evenement;
@@ -106,7 +109,56 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }
 
                     }
-
+                case "EPARGNE":
+                    // Vérifier si le client est déjà connecté
+                    if (cnx.getNumeroCompteClient() == null) {
+                        cnx.envoyer("EPARGNE NO");
+                        break;
+                    }
+                    banque = serveurBanque.getBanque();// Vérification si le client possède déjà un compte épargne
+                    CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
+                    boolean compteEpargneExist = false;
+                    for (CompteBancaire compte : compteClient.getComptes()) {// Parcourir les comptes bancaires du client pour vérifier s'il a déjà un compte épargne
+                        if (compte instanceof CompteEpargne) {
+                            compteEpargneExist = true;
+                            break;
+                        }
+                    }
+                    if (compteEpargneExist) {
+                        cnx.envoyer("EPARGNE NO");// Si un compte épargne existe déjà
+                    } else { // Créer un nouveau compte épargne avec un taux d'intérêt de 5%
+                        String numeroCompte = CompteBancaire.genereNouveauNumero();
+                        CompteEpargne compteEpargne = new CompteEpargne(numeroCompte, TypeCompte.EPARGNE, 0.05);
+                        //
+                        compteClient.ajouter(compteEpargne); // Ajouter le compte épargne à la list
+                        cnx.envoyer("EPARGNE OK"); //compte épargne créé
+                    }
+                    break;
+                case "SELECT":
+                    String accountType = evenement.getArgument().toLowerCase();
+                    // vérification de la connexion du clent
+                    if (cnx.getNumeroCompteClient() == null) {
+                        cnx.envoyer("SELECT NO");
+                    } else {
+                        String accountNumber = null;
+                        // sélection du compte en fonction de l'argument (chèque ou épargne)
+                        banque = serveurBanque.getBanque(); // initialisation de banque
+                        if (accountType.equals("cheque")) {
+                            accountNumber = banque.getNumeroCompteParDefaut(cnx.getNumeroCompteClient());
+                        } else if (accountType.equals("epargne")) {
+                            accountNumber = banque.getNumeroCompteEpargne(cnx.getNumeroCompteClient());
+                        } else {
+                            cnx.envoyer("SELECT NO Invalid");
+                            return;
+                        }
+                        if (accountNumber != null) {// Vérification si compte existe
+                            cnx.setNumeroCompteActuel(accountNumber);
+                            cnx.envoyer("SELECT OK");
+                        } else {
+                            cnx.envoyer("SELECT NO");
+                        }
+                    }
+                    break;
 
                 /******************* TRAITEMENT PAR DÉFAUT *******************/
                 default: //Renvoyer le texte recu convertit en majuscules :
