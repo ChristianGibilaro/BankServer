@@ -45,6 +45,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
         String msg, typeEvenement, argument, numCompteClient, nip;
         String[] t;
 
+
         if (source instanceof Connexion) {
             cnx = (ConnexionBanque) source;
             System.out.println("SERVEUR: Recu : " + evenement.getType() + " " + evenement.getArgument());
@@ -113,8 +114,8 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     // Vérifier si le client est déjà connecté
                     if (cnx.getNumeroCompteClient() == null) {
                         cnx.envoyer("EPARGNE NO");
-                        break;
-                    }
+
+                    }else{
                     banque = serveurBanque.getBanque();// Vérification si le client possède déjà un compte épargne
                     CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
                     boolean compteEpargneExist = false;
@@ -133,7 +134,9 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         compteClient.ajouter(compteEpargne); // Ajouter le compte épargne à la list
                         cnx.envoyer("EPARGNE OK"); //compte épargne créé
                     }
+                    }
                     break;
+
                 case "SELECT":
                     String accountType = evenement.getArgument().toLowerCase();
                     // vérification de la connexion du clent
@@ -160,7 +163,102 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     }
                     break;
 
-                /******************* TRAITEMENT PAR DÉFAUT *******************/
+                case "DEPOT":
+                    if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
+                        cnx.envoyer("DEPOT NO");
+                    }else {
+
+                        banque = serveurBanque.getBanque();
+                        CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
+
+                        boolean compteTrouver= false;
+                        CompteBancaire compte = null;
+
+                        for(CompteBancaire c : compteClient.getComptes())
+                        {
+                            if (c.getNumero().equals(cnx.getNumeroCompteActuel())) {
+                                compteTrouver = true;
+                                compte = c;
+                                break;
+                            }
+                        }
+                        if(!compteTrouver){
+                            cnx.envoyer("DEPOT NO");
+
+                        }else {
+
+                            argument = evenement.getArgument();
+                            t = argument.split(" ");
+                            Double somme;
+
+                            try {
+                                somme = Double.parseDouble(t[0]);
+                            }
+
+                            catch (NumberFormatException a) {
+                                cnx.envoyer("DEPOT NO");
+                                break;
+                            }
+
+                            if (!compte.crediter(somme)) {
+                                cnx.envoyer("DEPOT NO");
+                            } else {
+                                cnx.envoyer("DEPOT OK " + compte.getSolde());
+                            }
+                        }
+                    }
+                    break;
+
+                case "RETRAIT" :
+
+                    if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
+                        cnx.envoyer("RETRAIT NO pas de compte");
+                    }else {
+
+                        banque = serveurBanque.getBanque();
+                        CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
+
+                        boolean compteTrouver= false;
+                        CompteBancaire compte = null;
+
+                        for(CompteBancaire c : compteClient.getComptes())
+                        {
+                            if (c.getNumero().equals(cnx.getNumeroCompteActuel())) {
+                                compteTrouver = true;
+                                compte = c;
+                                break;
+                            }
+                        }
+                        if(!compteTrouver){
+                            cnx.envoyer("RETRAIT NO");
+
+                        }else {
+
+                            argument = evenement.getArgument();
+                            t = argument.split(" ");
+                            Double somme;
+
+                            try {
+                                somme = Double.parseDouble(t[0]);
+                            }
+
+                            catch (NumberFormatException a) {
+                                cnx.envoyer("RETRAIT NO");
+                                break;
+                            }
+
+                            if (!compte.debiter(somme)) {
+                                cnx.envoyer("RETRAIT NO");
+                            } else {
+                                cnx.envoyer("RETRAIT OK");
+                            }
+                        }
+
+                    }
+                    break;
+
+
+                    /******************* TRAITEMENT PAR DÉFAUT *******************/
                 default: //Renvoyer le texte recu convertit en majuscules :
                     msg = (evenement.getType() + " " + evenement.getArgument()).toUpperCase();
                     cnx.envoyer(msg);
