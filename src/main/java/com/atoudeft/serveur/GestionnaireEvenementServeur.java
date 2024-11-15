@@ -277,8 +277,63 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }
                     }
                 }
-                //Ajouter les details du paiement de facture dans la pile
+                break;
+
+                case "TRANSFER":
+                    if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
+                        cnx.envoyer("TRANSFER NO pas de compte");
+                    } else {
+                        banque = serveurBanque.getBanque();
+                        CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
+                        //CompteClient compteReceveur = banque.getCompteClient(cnx.getNumeroCompteClient());
+                        boolean compteTrouve = false;
+                        boolean compteRecuTrouve = false;
+                        CompteBancaire compteActuel = null;
+                        CompteBancaire compteRecu = null;
+                        for (CompteBancaire c : compteClient.getComptes()) {
+                            if (c.getNumero().equals(cnx.getNumeroCompteActuel())) {
+                                compteTrouve = true;
+                                compteActuel = c;
+                                break;
+                            }
+                        }
+                        if (!compteTrouve) {
+                            cnx.envoyer("TRANSFERT NO");
+                        } else {
+                            argument = evenement.getArgument();
+                            t = argument.split(" ");
+                            Double montant;
+
+                            try {
+                                montant = Double.parseDouble(t[0]);
+                            } catch (NumberFormatException a){
+                                cnx.envoyer("TRANSFERT NO");
+                                break;
+                            }
+
+                            for (CompteBancaire c : compteClient.getComptes()) {
+                                if (c.getNumero().equals(t[1])) {
+                                    compteRecuTrouve = true;
+                                    compteRecu = c;
+                                    break;
+                                }
+                            }
+                            if (!compteRecuTrouve) {
+                                cnx.envoyer("TRANSFERT NO");
+                            } else {
+                                if (!compteActuel.debiter(montant)) {
+                                    cnx.envoyer("TRANSFERT NO");
+                                } else if (!compteRecu.crediter(montant)){
+                                    cnx.envoyer("TRANSFERT NO");
+                                } else {
+                                    cnx.envoyer("TRANSFERT OK");
+                                }
+                            }
+                        }
+                    }
                     break;
+
+                //Ajouter les details du paiement de facture dans la pile
                     /******************* TRAITEMENT PAR DÉFAUT *******************/
                 default: //Renvoyer le texte recu convertit en majuscules :
                     msg = (evenement.getType() + " " + evenement.getArgument()).toUpperCase();

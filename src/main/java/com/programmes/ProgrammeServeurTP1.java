@@ -18,7 +18,7 @@ public class ProgrammeServeurTP1 {
 	/**
 	 * M?thode principale du programme.
 	 *
-	 * @param args Arguments du programme
+	 * @param args Arguments du programmeC
 	 */
     public static void main(String[] args) {
 
