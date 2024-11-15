@@ -167,13 +167,10 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
                         cnx.envoyer("DEPOT NO");
                     }else {
-
                         banque = serveurBanque.getBanque();
                         CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
-
                         boolean compteTrouver= false;
                         CompteBancaire compte = null;
-
                         for(CompteBancaire c : compteClient.getComptes())
                         {
                             if (c.getNumero().equals(cnx.getNumeroCompteActuel())) {
@@ -184,22 +181,17 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }
                         if(!compteTrouver){
                             cnx.envoyer("DEPOT NO");
-
                         }else {
-
                             argument = evenement.getArgument();
                             t = argument.split(" ");
                             Double somme;
-
                             try {
                                 somme = Double.parseDouble(t[0]);
                             }
-
                             catch (NumberFormatException a) {
                                 cnx.envoyer("DEPOT NO");
                                 break;
                             }
-
                             if (!compte.crediter(somme)) {
                                 cnx.envoyer("DEPOT NO");
                             } else {
@@ -208,19 +200,14 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }
                     }
                     break;
-
                 case "RETRAIT" :
-
                     if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
                         cnx.envoyer("RETRAIT NO pas de compte");
                     }else {
-
                         banque = serveurBanque.getBanque();
                         CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
-
                         boolean compteTrouver= false;
                         CompteBancaire compte = null;
-
                         for(CompteBancaire c : compteClient.getComptes())
                         {
                             if (c.getNumero().equals(cnx.getNumeroCompteActuel())) {
@@ -231,33 +218,67 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }
                         if(!compteTrouver){
                             cnx.envoyer("RETRAIT NO");
-
                         }else {
-
                             argument = evenement.getArgument();
                             t = argument.split(" ");
                             Double somme;
-
                             try {
                                 somme = Double.parseDouble(t[0]);
                             }
-
                             catch (NumberFormatException a) {
                                 cnx.envoyer("RETRAIT NO");
                                 break;
                             }
-
                             if (!compte.debiter(somme)) {
                                 cnx.envoyer("RETRAIT NO");
                             } else {
                                 cnx.envoyer("RETRAIT OK");
                             }
                         }
-
                     }
                     break;
 
+                case "FACTURE": if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
+                    cnx.envoyer("PAIEMENT FACTURE NO pas de compte");
+                } else {
+                    banque = serveurBanque.getBanque();
+                    CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
 
+                    boolean compteTrouve = false;
+                    CompteBancaire compte = null;
+
+                    for (CompteBancaire c : compteClient.getComptes()) {
+                        if (c.getNumero().equals(cnx.getNumeroCompteActuel())) {
+                            compteTrouve = true;
+                            compte = c;
+                            break;
+                        }
+                    }
+                    if (!compteTrouve) {
+                        cnx.envoyer("PAIEMENT FACTURE NO");
+                    } else {
+                        argument = evenement.getArgument();
+                        t = argument.split(" ");
+
+                        Double montant;
+
+                        try {
+                            montant = Double.parseDouble(t[0]);
+                        }
+                        catch (NumberFormatException a){
+                            cnx.envoyer("PAIEMENT FACTURE NO");
+                            break;
+                        }
+
+                        if (!compte.debiter(montant)) {
+                            cnx.envoyer("PAIEMENT FACTURE NO");
+                        } else {
+                            cnx.envoyer("PAIEMENT FACTURE OK ");
+                        }
+                    }
+                }
+                //Ajouter les details du paiement de facture dans la pile
+                    break;
                     /******************* TRAITEMENT PAR DÉFAUT *******************/
                 default: //Renvoyer le texte recu convertit en majuscules :
                     msg = (evenement.getType() + " " + evenement.getArgument()).toUpperCase();
