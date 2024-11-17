@@ -3,11 +3,19 @@ package com.atoudeft.banque.serveur;
 import com.atoudeft.banque.CompteBancaire;
 import com.atoudeft.banque.TypeCompte;
 
+/**
+ * Classe représentant un compte epargnes heritant d'un compte bancaire
+ * @author aymanelaghrieb
+ */
 public class CompteEpargne extends CompteBancaire {
+    /*Taux d'interets du compte epargne*/
     private double tauxInteret;
 
+    /*Limite de 1000$ pour les calculs de prélevement*/
     private final double LIMITE_MILLE = 1000;
+    /*Montant de prélevement du compte epargne*/
     private final double PRELEVEMENT = 2;
+    /*Nombre de mois par année*/
     private final double NB_MOIS = 12;
     /**
      * Crée un compte bancaire.

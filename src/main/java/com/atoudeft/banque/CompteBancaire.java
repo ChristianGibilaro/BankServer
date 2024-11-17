@@ -3,9 +3,13 @@ package com.atoudeft.banque;
 import java.io.Serializable;
 
 public abstract class CompteBancaire implements Serializable {
+    /* Numero de compte */
     private String numero;
+    /* Type de compte bancaire (cheque ou epargnes) */
     private TypeCompte type;
+    /* Montant d'argent dans le compte bancaire */
     private double solde;
+    /* Historique des operations anterieures du compte*/
     private PileChainee<Operation> historique;
 
     /**
@@ -54,6 +58,10 @@ public abstract class CompteBancaire implements Serializable {
         historique.empiler(operation);
     }
 
+    /**
+     * Retourne un String contenant l'historique des opérations du compte
+     * @return L'historique des opérations du compte
+     */
     public String getHistoriqueAsString() {
         if (historique.estVide()) {
             return "L'historique est vide";
@@ -68,6 +76,10 @@ public abstract class CompteBancaire implements Serializable {
     public abstract boolean payerFacture(String numeroFacture, double montant, String description);
     public abstract boolean transferer(double montant, String numeroCompteDestinataire);
 
+    /**
+     * Retourne l'historique des opérations du compte
+     * @return Une pile chainee contenant des operations
+     */
     public PileChainee<Operation> getHistorique() {
         return this.historique;
     }
