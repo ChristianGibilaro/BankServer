@@ -146,9 +146,9 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         String accountNumber = null;
                         // sélection du compte en fonction de l'argument (chèque ou épargne)
                         banque = serveurBanque.getBanque(); // initialisation de banque
-                        if (accountType.equals("cheque")) {
+                        if (accountType.equalsIgnoreCase("cheque")) {
                             accountNumber = banque.getNumeroCompteParDefaut(cnx.getNumeroCompteClient());
-                        } else if (accountType.equals("epargne")) {
+                        } else if (accountType.equalsIgnoreCase("epargne")) {
                             accountNumber = banque.getNumeroCompteEpargne(cnx.getNumeroCompteClient());
                         } else {
                             cnx.envoyer("SELECT NO Invalid");
@@ -165,7 +165,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
 
                 case "DEPOT":
                     if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
-                        cnx.envoyer("DEPOT NO");
+                        cnx.envoyer("DEPOT NO 1");
                     }else {
                         banque = serveurBanque.getBanque();
                         CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
@@ -180,7 +180,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                             }
                         }
                         if(!compteTrouver){
-                            cnx.envoyer("DEPOT NO");
+                            cnx.envoyer("DEPOT NO 1");
                         }else {
                             argument = evenement.getArgument();
                             t = argument.split(" ");
@@ -189,11 +189,11 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                                 somme = Double.parseDouble(t[0]);
                             }
                             catch (NumberFormatException a) {
-                                cnx.envoyer("DEPOT NO");
+                                cnx.envoyer("DEPOT NO 1");
                                 break;
                             }
                             if (!compte.crediter(somme)) {
-                                cnx.envoyer("DEPOT NO");
+                                cnx.envoyer("DEPOT NO 1");
                             } else {
                                 cnx.envoyer("DEPOT OK " + compte.getSolde());
                             }
@@ -282,56 +282,67 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                 case "TRANSFER":
                     if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
                         cnx.envoyer("TRANSFER NO pas de compte");
-                    } else {
-                        banque = serveurBanque.getBanque();
-                        CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
-                        //CompteClient compteReceveur = banque.getCompteClient(cnx.getNumeroCompteClient());
-                        boolean compteTrouve = false;
-                        boolean compteRecuTrouve = false;
-                        CompteBancaire compteActuel = null;
-                        CompteBancaire compteRecu = null;
-                        for (CompteBancaire c : compteClient.getComptes()) {
-                            if (c.getNumero().equals(cnx.getNumeroCompteActuel())) {
-                                compteTrouve = true;
-                                compteActuel = c;
-                                break;
-                            }
-                        }
-                        if (!compteTrouve) {
-                            cnx.envoyer("TRANSFERT NO");
-                        } else {
-                            argument = evenement.getArgument();
-                            t = argument.split(" ");
-                            Double montant;
+                        return;
+                    }
 
-                            try {
-                                montant = Double.parseDouble(t[0]);
-                            } catch (NumberFormatException a){
-                                cnx.envoyer("TRANSFERT NO");
-                                break;
-                            }
+                    banque = serveurBanque.getBanque();
+                    CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
 
-                            for (CompteBancaire c : compteClient.getComptes()) {
-                                if (c.getNumero().equals(t[1])) {
-                                    compteRecuTrouve = true;
-                                    compteRecu = c;
-                                    break;
-                                }
-                            }
-                            if (!compteRecuTrouve) {
-                                cnx.envoyer("TRANSFERT NO");
-                            } else {
-                                if (!compteActuel.debiter(montant)) {
-                                    cnx.envoyer("TRANSFERT NO");
-                                } else if (!compteRecu.crediter(montant)){
-                                    cnx.envoyer("TRANSFERT NO");
-                                } else {
-                                    cnx.envoyer("TRANSFERT OK");
-                                }
-                            }
+                    argument = evenement.getArgument();
+                    t = argument.split(" ");
+                    if (t.length < 2) {
+                        cnx.envoyer("TRANSFER NO Invalid arguments");
+                        return;
+                    }
+
+                    Double montant;
+                    String numeroCompteCible = t[1];
+                    try {
+                        montant = Double.parseDouble(t[0]);
+                    } catch (NumberFormatException e) {
+                        cnx.envoyer("TRANSFER NO Invalid amount");
+                        return;
+                    }
+
+                    // Recherche du compte source
+                    CompteBancaire compteSource = null;
+                    for (CompteBancaire c : compteClient.getComptes()) {
+                        if (c.getNumero().equals(cnx.getNumeroCompteActuel())) {
+                            compteSource = c;
+                            break;
                         }
                     }
+
+                    if (compteSource == null) {
+                        cnx.envoyer("TRANSFER NO Source account not found");
+                        return;
+                    }
+
+                    // Recherche du compte cible
+                    CompteBancaire compteCible = null;
+                    for (CompteBancaire c : compteClient.getComptes()) {
+                        System.out.println("Inspecting account: " + c.getNumero());
+                        if (c.getNumero().equals(numeroCompteCible)) {
+                            compteCible = c;
+                            break;
+                        }
+                    }
+
+                    if (compteCible == null) {
+                        cnx.envoyer("TRANSFER NO Target account not found");
+                        return;
+                    }
+
+                    // Effectuer le transfert
+                    if (!compteSource.debiter(montant)) {
+                        cnx.envoyer("TRANSFER NO Insufficient funds");
+                    } else if (!compteCible.crediter(montant)) {
+                        cnx.envoyer("TRANSFER NO Error crediting target account");
+                    } else {
+                        cnx.envoyer("TRANSFER OK");
+                    }
                     break;
+
 
                 //Ajouter les details du paiement de facture dans la pile
                     /******************* TRAITEMENT PAR DÉFAUT *******************/
