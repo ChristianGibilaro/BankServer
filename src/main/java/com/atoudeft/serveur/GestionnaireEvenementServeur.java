@@ -1,9 +1,6 @@
 package com.atoudeft.serveur;
 
-import com.atoudeft.banque.Banque;
-import com.atoudeft.banque.CompteBancaire;
-import com.atoudeft.banque.CompteClient;
-import com.atoudeft.banque.TypeCompte;
+import com.atoudeft.banque.*;
 import com.atoudeft.banque.serveur.CompteEpargne;
 import com.atoudeft.banque.serveur.ConnexionBanque;
 import com.atoudeft.banque.serveur.ServeurBanque;
@@ -184,17 +181,19 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }else {
                             argument = evenement.getArgument();
                             t = argument.split(" ");
-                            Double somme;
+                            Double montant;
                             try {
-                                somme = Double.parseDouble(t[0]);
+                                montant = Double.parseDouble(t[0]);
                             }
                             catch (NumberFormatException a) {
                                 cnx.envoyer("DEPOT NO 1");
                                 break;
                             }
-                            if (!compte.crediter(somme)) {
+                            if (!compte.crediter(montant)) {
                                 cnx.envoyer("DEPOT NO 1");
                             } else {
+                                OperationDepot opDepot = new OperationDepot(TypeOperation.DEPOT, montant);
+                                compte.getHistorique().empiler(opDepot);
                                 cnx.envoyer("DEPOT OK " + compte.getSolde());
                             }
                         }
@@ -221,17 +220,19 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }else {
                             argument = evenement.getArgument();
                             t = argument.split(" ");
-                            Double somme;
+                            Double montant;
                             try {
-                                somme = Double.parseDouble(t[0]);
+                                montant = Double.parseDouble(t[0]);
                             }
                             catch (NumberFormatException a) {
                                 cnx.envoyer("RETRAIT NO");
                                 break;
                             }
-                            if (!compte.debiter(somme)) {
+                            if (!compte.debiter(montant)) {
                                 cnx.envoyer("RETRAIT NO");
                             } else {
+                                OperationRetrait opRetrait = new OperationRetrait(TypeOperation.RETRAIT, montant);
+                                compte.getHistorique().empiler(opRetrait);
                                 cnx.envoyer("RETRAIT OK");
                             }
                         }
@@ -273,6 +274,8 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         if (!compte.debiter(montant)) {
                             cnx.envoyer("PAIEMENT FACTURE NO");
                         } else {
+                            OperationFacture opFacture = new OperationFacture(TypeOperation.FACTURE, montant, t[1], t[2]);
+                            compte.getHistorique().empiler(opFacture);
                             cnx.envoyer("PAIEMENT FACTURE OK ");
                         }
                     }
@@ -280,10 +283,9 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                 break;
 
                 case "TRANSFER":
-                    if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
+                if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
                         cnx.envoyer("TRANSFER NO pas de compte");
-                        return;
-                    }
+                    } else {
 
                     banque = serveurBanque.getBanque();
                     CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
@@ -339,7 +341,35 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     } else if (!compteCible.crediter(montant)) {
                         cnx.envoyer("TRANSFER NO Error crediting target account");
                     } else {
+                        OperationTransfer opTransfer = new OperationTransfer(TypeOperation.TRANSFER, montant, t[1]);
+                        compteSource.getHistorique().empiler(opTransfer);
                         cnx.envoyer("TRANSFER OK");
+                    }
+                }
+                break;
+                case "HIST":
+                    if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
+                        cnx.envoyer("HIST NO pas de compte");
+                    } else {
+                        banque = serveurBanque.getBanque();
+                        CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
+                        CompteBancaire compte = null;
+
+                        // Trouver le compte actif
+                        for (CompteBancaire c : compteClient.getComptes()) {
+                            if (c.getNumero().equals(cnx.getNumeroCompteActuel())) {
+                                compte = c;
+                                break;
+                            }
+                        }
+
+                        if (compte == null) {
+                            cnx.envoyer("HIST NO pas de compte");
+                        } else {
+                            // Utiliser la méthode getHistoriqueAsString pour récupérer l'historique
+                            String historiqueString = compte.getHistoriqueAsString();
+                            cnx.envoyer("HIST\n" + historiqueString);
+                        }
                     }
                     break;
 
