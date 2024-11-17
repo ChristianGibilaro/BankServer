@@ -372,7 +372,19 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }
                     }
                     break;
-
+                case "DEBUG":
+                    if (cnx.getNumeroCompteClient() != "22222222") {
+                        banque = serveurBanque.getBanque();
+                        CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
+                        cnx.envoyer("\nNum compte client: " + cnx.getNumeroCompteClient());
+                        cnx.envoyer("\nnombre de comptes: " + compteClient.getComptes().toArray().length);
+                        cnx.envoyer("\nListe:");
+                        for (CompteBancaire c : compteClient.getComptes()) {
+                            cnx.envoyer("\n" + c.getNumero() + " : " + c.getType().toString());
+                        }
+                        cnx.envoyer("\nNum compte SELECTED: " + cnx.getNumeroCompteActuel());
+                    }
+                    break;
 
                 //Ajouter les details du paiement de facture dans la pile
                     /******************* TRAITEMENT PAR DÉFAUT *******************/

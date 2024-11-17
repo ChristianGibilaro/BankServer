@@ -130,8 +130,8 @@ public class Banque implements Serializable {
         // Créer un comptechèque le numéro
         CompteCheque compteCheque = new CompteCheque(nouveauNumeroCompte, TypeCompte.CHEQUE);
         nouveauClient.ajouter(compteCheque); //méthode "ajouter" dans CompteClient
-        //return comptes.add(nouveauClient); // Ajouter à la collection des comptes
-        return this.comptes.add(new CompteClient(numCompteClient,nip)); //À modifier
+        return comptes.add(nouveauClient); // Ajouter à la collection des comptes
+        //return this.comptes.add(new CompteClient(numCompteClient,nip)); //À modifier
     }
     // Méthode pour vérifier si un compte exist déjà
     private boolean compteDejaExistant(String numeroCompte) {
