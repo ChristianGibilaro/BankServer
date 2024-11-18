@@ -122,13 +122,13 @@ public class Banque implements Serializable {
         //si toute les vérification sont réussis
         CompteClient nouveauClient = new CompteClient(numCompteClient, nip);
         //générer un nouveau numéro
-        //String nouveauNumeroCompte;
-       /* do{
+        String nouveauNumeroCompte;
+        do{
             nouveauNumeroCompte = CompteBancaire.genereNouveauNumero();
         }
-        while(compteDejaExistant(nouveauNumeroCompte));*/
+        while(compteDejaExistant(nouveauNumeroCompte));
         // Créer un comptechèque le numéro
-        CompteCheque compteCheque = new CompteCheque(numCompteClient, TypeCompte.CHEQUE);
+        CompteCheque compteCheque = new CompteCheque(nouveauNumeroCompte, TypeCompte.CHEQUE);
         nouveauClient.ajouter(compteCheque); //méthode "ajouter" dans CompteClient
         return comptes.add(nouveauClient); // Ajouter à la collection des comptes
         //return this.comptes.add(new CompteClient(numCompteClient,nip)); //À modifier
