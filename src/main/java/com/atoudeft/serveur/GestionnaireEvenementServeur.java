@@ -256,7 +256,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     }
                     break;
 
-                case "DEBUG":
+                /*case "DEBUG":
                     if (cnx.getNumeroCompteClient() != "22222222") {
                         banque = serveurBanque.getBanque();
                         CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
@@ -285,7 +285,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
 
 
                     }
-                    break;
+                    break;*/
 
                 case "FACTURE": if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
                     cnx.envoyer("PAIEMENT FACTURE NO pas de compte");
