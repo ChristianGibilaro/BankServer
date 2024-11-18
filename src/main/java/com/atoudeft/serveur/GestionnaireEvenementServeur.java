@@ -321,24 +321,18 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     }
 
                     // Recherche du compte cible
-                    CompteBancaire compteCible = null;
-                    for (CompteBancaire c : compteClient.getComptes()) {
-                        System.out.println("Inspecting account: " + c.getNumero());
-                        if (c.getNumero().equals(numeroCompteCible)) {
-                            compteCible = c;
-                            break;
-                        }
-                    }
+                    CompteClient compteCible = banque.getCompteClient(numeroCompteCible);
 
                     if (compteCible == null) {
                         cnx.envoyer("TRANSFER NO Target account not found");
                         return;
                     }
 
+                    CompteCheque compteChequeDestinataire = (CompteCheque) compteCible.getComptes().get(0);
                     // Effectuer le transfert
                     if (!compteSource.debiter(montant)) {
                         cnx.envoyer("TRANSFER NO Insufficient funds");
-                    } else if (!compteCible.crediter(montant)) {
+                    } else if (!compteChequeDestinataire.crediter(montant)) {
                         cnx.envoyer("TRANSFER NO Error crediting target account");
                     } else {
                         OperationTransfer opTransfer = new OperationTransfer(TypeOperation.TRANSFER, montant, t[1]);
