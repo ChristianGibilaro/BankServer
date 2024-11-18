@@ -28,6 +28,13 @@ public class CompteEpargne extends CompteBancaire {
         this.tauxInteret = tauxInteret;
     }
 
+    /**
+     * Crédite le compte épargne avec un montant donné.
+     *
+     * Si le montant est positif, il est ajouté au solde du compte épargne.
+     * @param montant Le montant à ajouter au solde du compte épargne.
+     * @return true si le crédit a réussi (montant > 0), false sinon.
+     */
     @Override
     public boolean crediter(double montant) {
         double solde = getSolde();
@@ -39,6 +46,14 @@ public class CompteEpargne extends CompteBancaire {
         return false;
     }
 
+    /**
+     * Débite le compte épargne du montant donné, avec une vérification des conditions.
+     *
+     * Si le montant est positif et inférieur au solde du compte, le montant est retiré.
+     * Si le solde initial est inférieur à la limite de 1000$, des frais de prélèvement sont appliqués.
+     * @param montant Le montant à retirer du solde du compte épargne.
+     * @return true si le débit a réussi, sinon false. Si le montant est inférieur au solde et qu'il y a des frais à prélever, ces derniers sont également appliqués.
+     */
     @Override
     public boolean debiter(double montant) {
         double soldeInitial = getSolde();
@@ -55,11 +70,28 @@ public class CompteEpargne extends CompteBancaire {
         return false;
     }
 
+    /**
+     * Méthode pour payer une facture.
+     * Actuellement, cette méthode ne fait rien et retourne toujours false.
+     *
+     * @param numeroFacture Le numéro de la facture à payer.
+     * @param montant Le montant de la facture.
+     * @param description La description de la facture.
+     * @return false, car cette fonctionnalité n'est pas encore implémentée.
+     */
     @Override
     public boolean payerFacture(String numeroFacture, double montant, String description) {
         return false;
     }
 
+    /**
+     * Effectue un transfert d'argent vers un autre compte bancaire.
+     * Actuellement, cette méthode ne fait rien et retourne toujours false.
+     *
+     * @param montant Le montant à transférer.
+     * @param numeroCompteDestinataire Le numéro du compte destinataire du transfert.
+     * @return false, car cette fonctionnalité n'est pas encore implémentée.
+     */
     @Override
     public boolean transferer(double montant, String numeroCompteDestinataire) {
         return false;

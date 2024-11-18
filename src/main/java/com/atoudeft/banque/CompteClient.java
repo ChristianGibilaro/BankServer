@@ -34,8 +34,8 @@ public class CompteClient implements Serializable {
     }
 
     @Override
-    public boolean equals (Object obj)  {
-        return ((CompteClient)obj).numero.equals(numero);
+    public boolean equals  (Object obj)  {
+        return  ((CompteClient)obj).numero.equals(numero);
     }
 
     /**

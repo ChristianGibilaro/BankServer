@@ -164,6 +164,18 @@ public class Banque implements Serializable {
         }
         return null; //À modifier. client nn trouvé
     }
+
+    /**
+     * Recherche et retourne le numéro du compte épargne associé à un client.
+     * Cette méthode parcourt les comptes du client spécifié par son numéro de compte-client.
+     * Si un compte épargne est trouvé parmi les comptes du client, son numéro est retourné.
+     * Si aucun compte épargne n'est trouvé, la méthode retourne null.
+     *
+     *
+     *
+     * @param numCompteClient Le numéro du compte-client pour lequel on cherche le compte épargne.
+     * @return Le numéro du compte épargne s'il existe, sinon null.
+     */
     public String getNumeroCompteEpargne(String numCompteClient) {
         CompteClient client = getCompteClient(numCompteClient);
         if (client != null) {
