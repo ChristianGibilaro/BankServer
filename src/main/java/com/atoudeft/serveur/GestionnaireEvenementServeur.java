@@ -33,6 +33,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
      *
      * @param evenement L'événement à gérer.
      */
+
     @Override
     public void traiter(Evenement evenement) {
         Object source = evenement.getSource();
@@ -84,20 +85,24 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     break;
 
                 case "CONNECT":
+                    //Verifie la connection au compte client
                     if (cnx.getNumeroCompteClient()!=null) {
                         cnx.envoyer("CONNECT NO deja connecte");
                         break;
                     }
+                    //Vérifie si les parametres (Numero de compte et NIP)
                     argument = evenement.getArgument();
                     t = argument.split(":");
                     if (t.length<2) {
                         cnx.envoyer("CONNECT NO");
                     }
                     else {
+                        //Verifie si le nip est pareil à celui enregistré
                         numCompteClient = t[0];
                         nip = t[1];
                         banque = serveurBanque.getBanque();
                         CompteClient compte = banque.getCompteClient(numCompteClient);
+                        //si le nip est valide et que le compte est existant
                         if (compte != null && compte.getNip().equals(nip) ) {
                             cnx.setNumeroCompteClient(numCompteClient);
                             cnx.setNumeroCompteActuel(banque.getNumeroCompteParDefaut(numCompteClient));
@@ -107,6 +112,8 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }
 
                     }
+                break;
+
                 case "EPARGNE":
                     // Vérifier si le client est déjà connecté
                     if (cnx.getNumeroCompteClient() == null) {
@@ -136,7 +143,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
 
                 case "SELECT":
                     String accountType = evenement.getArgument().toLowerCase();
-                    // vérification de la connexion du clent
+                    // vérification de la connexion du client
                     if (cnx.getNumeroCompteClient() == null) {
                         cnx.envoyer("SELECT NO");
                     } else {
@@ -161,9 +168,12 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     break;
 
                 case "DEPOT":
+                    // vérification de la connexion du compte client et la selection du compte ou faire la transaction
                     if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
                         cnx.envoyer("DEPOT NO 1");
                     }else {
+
+                        // cherche dans la liste des comptes du compte client pour trouvé le compte selectionné
                         banque = serveurBanque.getBanque();
                         CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
                         boolean compteTrouver= false;
@@ -176,8 +186,10 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                                 break;
                             }
                         }
+
+                        //si compte est trouvé et que la somme est valide, fait le depot
                         if(!compteTrouver){
-                            cnx.envoyer("DEPOT NO 1");
+                            cnx.envoyer("DEPOT NO");
                         }else {
                             argument = evenement.getArgument();
                             t = argument.split(" ");
@@ -186,11 +198,11 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                                 montant = Double.parseDouble(t[0]);
                             }
                             catch (NumberFormatException a) {
-                                cnx.envoyer("DEPOT NO 1");
+                                cnx.envoyer("DEPOT NO");
                                 break;
                             }
                             if (!compte.crediter(montant)) {
-                                cnx.envoyer("DEPOT NO 1");
+                                cnx.envoyer("DEPOT NO");
                             } else {
                                 OperationDepot opDepot = new OperationDepot(TypeOperation.DEPOT, montant);
                                 compte.getHistorique().empiler(opDepot);
@@ -199,10 +211,13 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         }
                     }
                     break;
+
                 case "RETRAIT" :
                     if (cnx.getNumeroCompteClient() == null || cnx.getNumeroCompteActuel() == null) {
                         cnx.envoyer("RETRAIT NO pas de compte");
                     }else {
+
+                        // cherche dans la liste des comptes du compte client pour trouvé le compte selectionné
                         banque = serveurBanque.getBanque();
                         CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
                         boolean compteTrouver= false;
@@ -215,6 +230,8 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                                 break;
                             }
                         }
+
+                        //si compte est trouvé et que la somme est valide, fait le retrait
                         if(!compteTrouver){
                             cnx.envoyer("RETRAIT NO");
                         }else {
@@ -236,6 +253,37 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                                 cnx.envoyer("RETRAIT OK");
                             }
                         }
+                    }
+                    break;
+
+                case "DEBUG":
+                    if (cnx.getNumeroCompteClient() != "22222222") {
+                        banque = serveurBanque.getBanque();
+                        CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
+                        cnx.envoyer("\n");
+                        cnx.envoyer("\nNum compte client: " + cnx.getNumeroCompteClient());
+                        cnx.envoyer("\nnombre de comptes: " + compteClient.getComptes().toArray().length);
+                        cnx.envoyer("\nListe:");
+
+                        boolean compteTrouver = false;
+                        CompteBancaire compte = null;
+                        for (CompteBancaire c : compteClient.getComptes()) {
+                            if(c.getNumero().equals(cnx.getNumeroCompteActuel()))
+                            {
+                                compteTrouver = true;
+                                compte = c;
+                            }
+                            cnx.envoyer("\n" + c.getNumero() + " : " + c.getType().toString() + "-SOLDE: " + c.getSolde());
+                        }
+                        cnx.envoyer("\nNum compte SELECTED: " + cnx.getNumeroCompteActuel());
+
+
+                        if (compteTrouver) {
+                            cnx.envoyer("\ntype: " + compte.getType().toString());
+                            cnx.envoyer("\nsolde: " + compte.getSolde());
+                        }
+
+
                     }
                     break;
 
@@ -364,19 +412,6 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                             String historiqueString = compte.getHistoriqueAsString();
                             cnx.envoyer("HIST\n" + historiqueString);
                         }
-                    }
-                    break;
-                case "DEBUG":
-                    if (cnx.getNumeroCompteClient() != "22222222") {
-                        banque = serveurBanque.getBanque();
-                        CompteClient compteClient = banque.getCompteClient(cnx.getNumeroCompteClient());
-                        cnx.envoyer("\nNum compte client: " + cnx.getNumeroCompteClient());
-                        cnx.envoyer("\nnombre de comptes: " + compteClient.getComptes().toArray().length);
-                        cnx.envoyer("\nListe:");
-                        for (CompteBancaire c : compteClient.getComptes()) {
-                            cnx.envoyer("\n" + c.getNumero() + " : " + c.getType().toString());
-                        }
-                        cnx.envoyer("\nNum compte SELECTED: " + cnx.getNumeroCompteActuel());
                     }
                     break;
 
